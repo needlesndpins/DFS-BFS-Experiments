@@ -1,4 +1,7 @@
 from collections import deque
+from itertools import combinations 
+import random
+
 
 #Undirected graph using an adjacency list
 class Graph:
@@ -125,8 +128,6 @@ def BFS2(G,node1, node2):
 
                 # Go back through parent array to find path
                 while n != node1: 
-                    print(n)
-                    print(p[n])
                     path.append(n)
                     n = p[n]
                 path.append(node1)
@@ -205,10 +206,44 @@ def is_connected(G):
     return len(discovered) == num_vertices
     
 
+# Return a graph with i nodes and j edges
+def create_random_graph(i,j): 
+    G = Graph(i) # Creates graph with i nodes
 
 
+    # Calculate all possible pairs of nodes, ignore duplicates (u,v) , (v,u) 
+    #  Will only include one of those pairs
+    # Also ignores self loops 
+    subset = list(combinations([k for k in range(i)],2)) 
+                                    
+    s = set() # Store pairs of edges (Used to avoid duplicates)
+
+    k = 0 
+
+    # Choose j random edges
+    while k < j: 
+        choice = random.choice(subset) # Choose random pair of edges 
+
+        # Check if choice in s
+        if choice not in s: 
+            s.add(choice)
+            G.add_edge(choice[0],choice[1])
+            k += 1
+    
+    return G
+    
+
+    
+
+
+  
+
+
+l = create_random_graph(10000,1000)
+print(l.adj)
 
 g = Graph(6)
+
 
 
 g.add_edge(0,1)
@@ -232,8 +267,8 @@ g2.add_edge(1,2)
 g2.add_edge(2,0)
 
 
-print(BFS3(g,0))
-print(is_connected(g))
+# print(BFS3(g,0))
+# print(is_connected(g))
 
 
 
