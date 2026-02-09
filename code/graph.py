@@ -309,11 +309,9 @@ g2.add_edge(0,1)
 g2.add_edge(1,2)
 g2.add_edge(2,0)
 
-
+print(BFS2(g,0,5))
+print(DFS2(g,0,5))
 print(BFS3(g,0))
+print(DFS3(g,0))
 print(is_connected(g))
-
-
-
-
 print(has_cycle(g))
