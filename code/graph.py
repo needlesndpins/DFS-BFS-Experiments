@@ -8,7 +8,7 @@ class Graph:
 
     def __init__(self, n):
         self.adj = {}
-        for i in range(n):
+        for i in range(0,n):
             self.adj[i] = []
 
     def are_connected(self, node1, node2):
@@ -63,6 +63,81 @@ def DFS(G, node1, node2):
                 S.append(node)
     return False
 
+#*************** DFS2 (our code) *********************
+
+def DFS2(G, node1, node2):
+    P = {}               
+    S = [node1]           
+    marked = {}
+    for node in G.adj:
+        marked[node] = False
+    marked[node1] = True
+    P[node1] = None
+    while len(S) != 0:
+        current_node = S.pop()
+
+        if current_node == node2:
+            path = []
+            cur = node2
+            while cur is not None:
+                path.append(cur)
+                cur = P[cur]
+            path.reverse()
+            return path
+
+        for node in G.adj[current_node]:
+            if not marked[node]:
+                marked[node] = True
+                P[node] = current_node
+                S.append(node)
+
+    return None
+
+
+#*************** DFS3 (our code) *********************
+
+def DFS3(G, node1):
+    P = {}               
+    S = [node1]           
+    marked = {}
+    for node in G.adj:
+        marked[node] = False
+    marked[node1] = True
+    while len(S) != 0:
+        current_node = S.pop()
+        for node in G.adj[current_node]:
+            if not marked[node]:
+                marked[node] = True
+                P[node] = current_node
+                S.append(node)
+
+    return P
+
+#************ has cycle (our code) **********************
+def has_cycle(G):
+    marked = {}
+    parent = {}
+    for node in G.adj:
+        marked[node] = False
+        parent[node] = None
+    for node in G.adj:
+        if not marked[node]:
+            S = [node]
+            marked[node] = True
+            parent[node] = None
+            while len(S) != 0:
+                current_node = S.pop()
+                for node in G.adj[current_node]:
+                    if not marked[node]:
+                        marked[node] = True
+                        parent[node] = current_node
+                        S.append(node)
+                    elif parent[current_node] != node:
+                        return True
+
+    return False
+
+
 #Use the methods below to determine minimum vertex covers
 
 def add_to_each(sets, element):
@@ -92,6 +167,9 @@ def MVC(G):
             if len(subset) < len(min_cover):
                 min_cover = subset
     return min_cover
+
+#********** Experiments (our code) **************
+
 
 
 # * Our Code *
