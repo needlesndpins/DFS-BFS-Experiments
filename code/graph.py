@@ -385,17 +385,23 @@ def experiment2():
 #experiment1()
 #experiment2()
 
-g = Graph(7)
+# g = Graph(7)
 
-g.add_edge(0,1)
-g.add_edge(0,2)
-g.add_edge(1,3)
-g.add_edge(2,3)
-g.add_edge(2,4)
-g.add_edge(3,5)
+# g.add_edge(0,1)
+# g.add_edge(0,2)
+# g.add_edge(1,3)
+# g.add_edge(2,3)
+# g.add_edge(2,4)
+# g.add_edge(3,5)
 
-print(MIS(g))
-print(MVC(g))
+g = create_random_graph(15,15)
+a = MIS(g)
+b = MVC(g)
+
+print(a)
+print(b)
+print(len(a))
+print(len(b))
 
 #BFS2(g,0,4)
 
