@@ -3,6 +3,7 @@ from itertools import combinations
 import random
 import copy
 
+import matplotlib.pyplot as plt
 
 #Undirected graph using an adjacency list
 class Graph:
@@ -172,6 +173,9 @@ def MVC(G):
 #********** Experiments (our code) **************
 
 #*************** BFS2 (our code) *********************
+# BFS2
+
+# Do we assume node1 != node2 ??
 def BFS2(G,node1, node2):
 
     # Initialize parent array with -1 for every entry
@@ -278,6 +282,30 @@ def is_connected(G):
 
 
     return len(discovered) == num_vertices
+
+
+
+def is_independent_set(G, I):
+    for start in G.adj:
+        for end in G.adj[start]:
+            if start in I and end in I:
+                return False
+    return True
+
+
+def MIS(G):
+    nodes = [i for i in range(G.number_of_nodes())]
+    subsets = power_set(nodes)
+
+    max_independent = []
+
+    for subset in subsets:
+        if is_independent_set(G, subset):
+            if len(subset) > len(max_independent):
+                max_independent = subset
+
+    return max_independent
+
     
 
 #*************** create_random_graph (our code) *********************
@@ -307,8 +335,54 @@ def create_random_graph(i,j):
     
     return G
     
+def listOfRandomGraphs(m, e):
+    graphs = []
+    for i in range(m):
+        graphs.append(create_random_graph(100,e))
+    return graphs
 
-    
+def experiment1():
+    m = 100 #number of graphs in each list
+    maxEdges = 100
+    graphs = [listOfRandomGraphs(m,x) for x in range(1,maxEdges)]
+    probabilties = []
+    tempSum = 0
+
+    for i in graphs:
+        for j in i:
+            if has_cycle(j):
+                tempSum += 1
+        probabilties.append(tempSum/m)
+        tempSum = 0
+
+    plt.plot([x for x in range(1,maxEdges)], probabilties)
+    plt.title("Probabiltity of Cycle vs Number of Edges")
+    plt.xlabel("Number of edges")
+    plt.ylabel("Probability of cycle")
+    plt.show()
+    return 0
+
+def experiment2():
+    m = 100 #number of graphs in each list
+    minEdges = 125
+    maxEdges = 500
+    graphs = [listOfRandomGraphs(m,x) for x in range(minEdges,maxEdges)]
+    probabilties = []
+    tempSum = 0
+
+    for i in graphs:
+        for j in i:
+            if is_connected(j):
+                tempSum += 1
+        probabilties.append(tempSum/m)
+        tempSum = 0
+
+    plt.plot([x for x in range(minEdges,maxEdges)], probabilties)
+    plt.title("Probabiltity of Connection vs Number of Edges")
+    plt.xlabel("Number of edges")
+    plt.ylabel("Probability of Connection")
+    plt.show()
+    return 0
 
 # Create m graphs with n nodes (For each varying edge size)
 def experiment2(n,m): 
@@ -426,8 +500,26 @@ def approx3(G):
     return C
         
 
+#experiment1()
+#experiment2()
 
+# g = Graph(7)
 
+# g.add_edge(0,1)
+# g.add_edge(0,2)
+# g.add_edge(1,3)
+# g.add_edge(2,3)
+# g.add_edge(2,4)
+# g.add_edge(3,5)
+
+g = create_random_graph(15,15)
+a = MIS(g)
+b = MVC(g)
+
+print(a)
+print(b)
+print(len(a))
+print(len(b))
 
 
         
