@@ -1,6 +1,8 @@
 from collections import deque
 from itertools import combinations 
 import random
+import copy
+
 import matplotlib.pyplot as plt
 
 #Undirected graph using an adjacency list
@@ -170,6 +172,7 @@ def MVC(G):
 
 #********** Experiments (our code) **************
 
+#*************** BFS2 (our code) *********************
 # BFS2
 
 # Do we assume node1 != node2 ??
@@ -219,6 +222,7 @@ def BFS2(G,node1, node2):
     return path
 
 
+#*************** BFS3 (our code) *********************
 # Return predecessor dictionary of form: {2 : 1, 3 : 1, 4 : 2, 5 : 3, 6 : 4}
 def BFS3(G,node1): 
     Q = deque([node1])
@@ -249,6 +253,7 @@ def BFS3(G,node1):
     return dic
 
 
+#*************** is_connected (our code) *********************
 # Choose a vertex, and check if you visit every vertex
 # Assume all Graphs have vertex 0 (Should cause of how Graphs are defined in this file)
 def is_connected(G): 
@@ -303,6 +308,7 @@ def MIS(G):
 
     
 
+#*************** create_random_graph (our code) *********************
 # Return a graph with i nodes and j edges
 def create_random_graph(i,j): 
     G = Graph(i) # Creates graph with i nodes
@@ -378,9 +384,121 @@ def experiment2():
     plt.show()
     return 0
 
+# Create m graphs with n nodes (For each varying edge size)
+def experiment2(n,m): 
 
-  
+    #graphs = [create_random_graph(n,x) for x in range(n)]
+    graphs = [[] for _ in range(m)]
 
+
+    for i in range(m): 
+        # Create m graphs 
+        j = 0 
+        num_edges = 0
+        while j < m:
+             graphs[i].append(create_random_graph(n,num_edges))
+             num_edges = (num_edges + 10) % n 
+             j += 1
+
+    print(graphs)
+
+
+
+
+#*************** approx1 (our code) *********************
+
+# Find vertex with highest degree in G
+# Defaults to 0 if all vertices have same number of edges
+def highest_degree(G): 
+    maxDegree = 0
+    maxVertex = 0
+
+    for vertex in G.adj:
+        currentDegree = len(G.adj[vertex])
+
+        if currentDegree > maxDegree: 
+            maxDegree = currentDegree
+            maxVertex = vertex
+        
+    return maxVertex
+
+# Approximates the vertex cover using highest degree vertex
+def approx1(G): 
+
+    # Copy the graph
+    graph = copy.deepcopy(G)
+
+    # print(graph.adj)
+
+    # Create empty set 
+    C = set()
+
+    # While C is not a vertex cover, repeat steps
+    while not is_vertex_cover(graph,C): 
+        largestVertex = highest_degree(graph) # Return vertex with largest degree in graph
+        C.add(largestVertex)                  # Add largest vertex to set
+
+        # print(C)
+
+        graph.adj[largestVertex] = []        # Remove all adjacent edges to largest Vertex
+
+    return C
+
+
+
+
+# Approximates the vertex cover using random vertex
+def approx2(G): 
+    graph = copy.deepcopy(G) 
+    C = set() 
+
+    while not is_vertex_cover(graph,C):
+
+        # Choose random vertex from graphs adjacency list
+        rVertex = random.choice(list(graph.adj.keys())) 
+
+
+        # Keep choosing new rVertex 
+        while rVertex in C: 
+            rVertex = random.choice(list(graph.adj.keys())) 
+
+        C.add(rVertex)
+    return C
+    
+
+# Approximates the vertex cover using random edge (u,v)
+def approx3(G): 
+    graph = copy.deepcopy(G) 
+    C = set() 
+
+    while not is_vertex_cover(graph,C):
+
+        # Choose random vertex from graphs adjacency list 
+        u = random.choice(list(graph.adj.keys()))   
+
+        # Has at least one edge
+        if len(graph.adjacent_nodes(u)) > 0: 
+            # Choose random vertex from u's adjacency list
+            v = random.choice(graph.adjacent_nodes(u))
+
+        # No adjacent edges, so skip to next iteration
+        else: 
+            continue 
+
+        # keep choosing new pairs while both are in C
+        while u in C and v in C: 
+            u = random.choice(list(graph.adj.keys()))
+
+            if len(graph.adjacent_nodes(u)) > 0: 
+                # Choose random vertex from u's adjacency list
+                v = random.choice(graph.adjacent_nodes(u))
+
+        graph.adj[u] = [] # Reset u's adjacency list 
+        C.add(u)
+        C.add(v)
+
+    return C
+        
 
 #experiment1()
 #experiment2()
@@ -403,21 +521,22 @@ print(b)
 print(len(a))
 print(len(b))
 
-#BFS2(g,0,4)
 
-
-# 0 - 1 - 2    3 
-# |-------|
-
-g2 = Graph(4) 
-g2.add_edge(0,1)
-g2.add_edge(1,2)
-g2.add_edge(2,0)
-
-
-# print(BFS3(g,0))
-# print(is_connected(g))
+        
 
 
 
 
+G = create_random_graph(4,2) 
+
+print(MVC(G))
+print(approx1(G))
+print(approx2(G))
+print(approx3(G))
+
+
+# u = random.choice(list(G.adj.keys()))
+
+# print(G.adj)
+# print(u)
+# print(random.choice(G.adjacent_nodes(u)))
