@@ -2,7 +2,8 @@ from collections import deque
 from itertools import combinations 
 import random
 import copy
-
+import math
+import matplotlib.pyplot as plt
 
 #Undirected graph using an adjacency list
 class Graph:
@@ -160,7 +161,7 @@ def is_vertex_cover(G, C):
     return True
 
 def MVC(G):
-    nodes = [i for i in range(G.number_of_nodes())]
+    nodes = [i for i in range(len(G.adj))]
     subsets = power_set(nodes)
     min_cover = nodes
     for subset in subsets:
@@ -282,8 +283,14 @@ def is_connected(G):
 
 #*************** create_random_graph (our code) *********************
 # Return a graph with i nodes and j edges
+# Limited to i CHOOSE 2 edges; since unique edges
 def create_random_graph(i,j): 
     G = Graph(i) # Creates graph with i nodes
+
+    # More edges than possible connections in graph
+    # Return empty graph
+    if j > math.comb(i,2): 
+        return G
 
 
     # Calculate all possible pairs of nodes, ignore duplicates (u,v) , (v,u) 
@@ -334,7 +341,7 @@ def experiment2(n,m):
 #*************** approx1 (our code) *********************
 
 # Find vertex with highest degree in G
-# Defaults to 0 if all vertices have same number of edges
+# Defaults to 0 if all vertices have no edges
 def highest_degree(G): 
     maxDegree = 0
     maxVertex = 0
@@ -428,23 +435,293 @@ def approx3(G):
 
 
 
-
-
+# Generate 1000 graphs with 7 different edge sizes 
+# Compute MVC for each graph 
+# 2 things to check
+#   1) Check if Approx returns MVC (Count how many are minimum)
+#   2) Calculate size of approximation, and compare to MVC 
+#      - Sum # all edges in MVC to get total_sum
+#      - Sum # all edges in approx to get aprox_sum
+#   3) Calculate expected performance: approx_sum / total_sum
+#   Do this for each different number of edges, then graph the results
+def part2_edge():
         
+    num_edges = [1,5,10,15,20,25,28] # 28 is max amount of unique edges for graph with 8 nodes
+    num_graphs = 1000         # Num graphs for each edge count
+
+    # Dictionary of graphs, where graphs[i] stores array of graphs with 'i' edges
+    graphs = {1: [], 5: [], 10: [], 15: [], 20: [], 25:[], 28:[]} 
+
+    # For each edge ampunt
+    for edge in num_edges: 
+        # Create num_graphs 
+        for _ in range(num_graphs):
+            temp = create_random_graph(8,edge)
+            # print(f"{j}, {edge}: hit here")
+
+            graphs[edge].append(temp) # append to array
+
+
+    mvcSum = {1: 0, 5: 0, 10: 0, 15: 0, 20: 0, 25: 0, 28: 0} # Store sum of MVC for each num of edges
+
+    # Keys represent number of edges
+    # Values are arrays: 
+    #  [Sum of all approx vertex cover, Count number of minimum vertex covers]
+    a1Sum = {1: [0,0], 5: [0,0], 10: [0,0], 15: [0,0], 
+             20: [0,0], 25: [0,0], 28: [0,0]}
+    a2Sum = {1: [0,0], 5: [0,0], 10: [0,0], 15: [0,0], 
+             20: [0,0], 25: [0,0], 28: [0,0]}
+    a3Sum = {1: [0,0], 5: [0,0], 10: [0,0], 15: [0,0], 
+             20: [0,0], 25: [0,0], 28: [0,0]}
+    
+    
+    # Store expected performances
+    a1Perf = []
+    a2Perf = []
+    a3Perf = []
+    
+
+    # Compute MVC, approx1, approx2, approx3 
+
+    # For each number of edges
+    for edge in graphs.keys():
+
+        # Compute MCV, approx1, approx2, approx3 for each of the graphs 
+        for i in range(num_graphs):
+            g = copy.deepcopy(graphs[edge][i])
+
+
+
+            # Feed copy of graph, avoid issues
+            minCoverSize = len(MVC(g)) # Store size of minimum vertex cover
+
+            # Don't need to feed copy since approx copies it 
+            approx1Size = len(approx1(graphs[edge][i]))  # Store size of approximation vertex cover
+            approx2Size = len(approx2(graphs[edge][i]))
+            approx3Size = len(approx3(graphs[edge][i]))
+
+
+            # Add to size 
+            mvcSum[edge] += minCoverSize 
+            a1Sum[edge][0] += approx1Size # [key][0] stores sum of all approx vertex cover sizes
+            a2Sum[edge][0] += approx2Size
+            a3Sum[edge][0] += approx3Size
+
+            # Check if approximations are minimum vertex covers
+            if(approx1Size == minCoverSize): 
+                a1Sum[edge][1] += 1           # [key][1] stores number of approximations are minimum
+
+            if(approx2Size == minCoverSize): 
+                a2Sum[edge][1] += 1
+
+            if(approx3Size == minCoverSize): 
+                a3Sum[edge][1] += 1
+
+        # Compute expected performanve for each edge count
+        a1Perf.append(a1Sum[edge][0] / mvcSum[edge])
+        a2Perf.append(a2Sum[edge][0] / mvcSum[edge])
+        a3Perf.append(a3Sum[edge][0] / mvcSum[edge])
+
+    print(f"approx1: {a1Sum}")
+    print(f"approx2: {a2Sum}")
+    print(f"approx3: {a3Sum}")
+
+
+
+    plt.plot(num_edges,a1Perf, label = "Approximation 1")
+    plt.plot(num_edges,a2Perf, label = "Approximation 2")
+    plt.plot(num_edges,a3Perf, label = "Approximation 3")
+
+    plt.xlabel("Number of edges")
+    plt.ylabel("Expected performance (Approx sum / Min cover sum)")
+    plt.title("Expected performance for 8 nodes and varied edges")
+    plt.legend()
+
+    plt.show()
+
+# Compute expected performance of approximations for differen number of nodes
+#   approx_sum / total_sum
+# Takes a boolean argument
+#  True -> Fix number of edges (6)
+#  False -> Proportional number of edges (node CHOOSE 2 / 2, half max amount of edges)
+def part2_node(fixed): 
+
+    # Use a dictionary for index mapping 
+    graphs = {}
+    num_nodes = [4,5,6,7,8,9,10,11]
+    num_graphs = 1000
+
+    num_edges = 6
+
+    # Create 1000 graphs with different number of nodes (5 - 10) 
+    for i in num_nodes:
+        
+        if not fixed: 
+            num_edges = math.comb(i,2) // 2  # Half max amount of edges
+
+        graphs[i] = [] # Initialize spot i as an array
+
+        for j in range(num_graphs):
+            temp = create_random_graph(i,num_edges)
+            graphs[i].append(temp)  # Append to position i
+    
+
+    a1Perf = []
+    a2Perf = []
+    a3Perf = []
+
+
+    for node in graphs.keys(): 
+
+        mvcSum = 0
+        a1Sum = 0
+        a2Sum = 0
+        a3Sum = 0
+        
+        for i in range(num_graphs): 
+            g = copy.deepcopy(graphs[node][i]) # Copy graph to feed to MVC (Avoid issues)
+
+
+
+            # Feed copy of graph, avoid issues
+            minCoverSize = len(MVC(g)) # Store size of minimum vertex cover
+
+            # Don't need to feed copy since approx copies it 
+            approx1Size = len(approx1(graphs[node][i]))  # Store size of approximation vertex cover
+            approx2Size = len(approx2(graphs[node][i]))
+            approx3Size = len(approx3(graphs[node][i]))
+
+
+            # Add to size 
+            mvcSum += minCoverSize 
+            a1Sum += approx1Size # [key][0] stores sum of all approx vertex cover sizes
+            a2Sum += approx2Size
+            a3Sum += approx3Size
+
+        # Compute expected performance
+        a1Perf.append(a1Sum/mvcSum)
+        a2Perf.append(a2Sum/mvcSum)
+        a3Perf.append(a3Sum/mvcSum)
+
+
+    plt.plot(num_nodes,a1Perf, label = "Approximation 1")
+    plt.plot(num_nodes,a2Perf, label = "Approximation 2")
+    plt.plot(num_nodes,a3Perf, label = "Approximation 3")
+
+    plt.xlabel("Number of nodes")
+    plt.ylabel("Expected performance (Approx sum / Min cover sum)")
+    plt.title("Expected performance for varied number of nodes")
+    plt.legend()
+
+    plt.show()
+
+
+
+    return
+
+
+# Receives a set of tuples of edges 
+# edges = ( (n1,n2), (n3,n4), ...)
+def create_graph(edges): 
+    g = Graph(5)
+
+    if len(edges) <= 0:
+        return g 
+    
+
+    for pair in edges:
+
+        # Invalid size
+        if len(pair) != 2: 
+            continue
+
+        g.add_edge(pair[0],pair[1])
+
+    return g
+
+
+# Generate all graphs of size 5
+# Max edges: (5 CHOOSE 2) = 10 
+# 2^10 = 1024 possible graphs 
+# Consider all possible edges
+#  (0,1), 
+def part2_worst_case():
+
+    # Get all subsets of this for possible edge combinations
+    pEdges = list(combinations([k for k in range(5)],2))  # Store all possible edges
+
+    graphs = []
+    
+    subsets = []
+
+    # Generate all possible combinatiosn of pEdges for sizes 0 .. len(pEdges
+    # Computes all possible subsets of possible edges, which computes all possible graphs
+    for i in range(len(pEdges) + 1):
+        subsets.extend(list(combinations(pEdges,i)))
+    
+
+    a1Perf = []
+    # For every set in subsets
+    for set in subsets: 
+        g = create_graph(set) # Create a graph for each subset of edges
+        g2 = copy.deepcopy(g)  # Create copy
+        # graphs.append(create_graph(set)) # Create a graph for each subset 
+
+        mvcSum = len(MVC(g2))
+        a1Sum = len(approx1(g))
+
+        if mvcSum == 0: 
+            a1Perf.append(1)
+        else:
+            if(a1Sum/mvcSum > 1.8):
+                print(set)
+            a1Perf.append(a1Sum/mvcSum)
+            
+
+    print(len(a1Perf))
+    
+    plt.plot([i for i in range(1,len(subsets) + 1)],a1Perf, label = "Approximation 1")
+
+    plt.xlabel("Graph ID")
+    plt.ylabel("Expected performance (Approx sum / Min cover sum)")
+    plt.title("Expected performance for all graphs with 5 nodes")
+    plt.legend()
+
+    plt.show()
 
 
 
 
-G = create_random_graph(4,2) 
-
-print(MVC(G))
-print(approx1(G))
-print(approx2(G))
-print(approx3(G))
 
 
-# u = random.choice(list(G.adj.keys()))
+    
+    return
 
-# print(G.adj)
-# print(u)
-# print(random.choice(G.adjacent_nodes(u)))
+
+# Run experiments 
+# part2_edge()
+# part2_node(True)  # True -> Fixed number of edges
+# part2_node(False) # False -> Not fixed, proportional number of edges
+
+
+part2_worst_case()
+
+
+
+# pEdges = list(combinations([k for k in range(5)],2))  # Store all possible edges
+
+# subsets = []
+#     # Generate all possible combinatiosn of pEdges for sizes 0 .. len(pEdges
+#     # Computes all possible subsets of possible edges, which computes all possible graphs
+# for i in range(len(pEdges) + 1):
+#     subsets.extend(list(combinations(pEdges,i)))
+
+# g = create_graph(subsets[1023])
+# print(g.adj)
+# print(len(subsets[1023][0]))
+# # Example
+# lst = [1, 2, 3]
+# print(all_subsets(lst))
+
+
+# print(list(combinations([k for k in range(10)],2)))
