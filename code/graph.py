@@ -338,7 +338,7 @@ def experiment2(n,m):
 
 
 
-#*************** approx1 (our code) *********************
+#*************** Part 2 *********************
 
 # Find vertex with highest degree in G
 # Defaults to 0 if all vertices have no edges
@@ -644,7 +644,6 @@ def create_graph(edges):
 # Max edges: (5 CHOOSE 2) = 10 
 # 2^10 = 1024 possible graphs 
 # Consider all possible edges
-#  (0,1), 
 def part2_worst_case():
 
     # Get all subsets of this for possible edge combinations
@@ -702,26 +701,4 @@ def part2_worst_case():
 # part2_edge()
 # part2_node(True)  # True -> Fixed number of edges
 # part2_node(False) # False -> Not fixed, proportional number of edges
-
-
-part2_worst_case()
-
-
-
-# pEdges = list(combinations([k for k in range(5)],2))  # Store all possible edges
-
-# subsets = []
-#     # Generate all possible combinatiosn of pEdges for sizes 0 .. len(pEdges
-#     # Computes all possible subsets of possible edges, which computes all possible graphs
-# for i in range(len(pEdges) + 1):
-#     subsets.extend(list(combinations(pEdges,i)))
-
-# g = create_graph(subsets[1023])
-# print(g.adj)
-# print(len(subsets[1023][0]))
-# # Example
-# lst = [1, 2, 3]
-# print(all_subsets(lst))
-
-
-# print(list(combinations([k for k in range(10)],2)))
+# part2_worst_case()
