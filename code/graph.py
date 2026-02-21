@@ -161,7 +161,7 @@ def is_vertex_cover(G, C):
     return True
 
 def MVC(G):
-    nodes = [i for i in range(len(G.adj))]
+    nodes = [i for i in range(G.number_of_nodes())]
     subsets = power_set(nodes)
     min_cover = nodes
     for subset in subsets:
@@ -173,6 +173,7 @@ def MVC(G):
 #********** Experiments (our code) **************
 
 #*************** BFS2 (our code) *********************
+
 def BFS2(G,node1, node2):
 
     # Initialize parent array with -1 for every entry
@@ -315,33 +316,65 @@ def create_random_graph(i,j):
     return G
     
 
-    
+#*************** Experiment 1 / 2 *********************
 
-# Create m graphs with n nodes (For each varying edge size)
-def experiment2(n,m): 
-
-    #graphs = [create_random_graph(n,x) for x in range(n)]
-    graphs = [[] for _ in range(m)]
-
-
-    for i in range(m): 
-        # Create m graphs 
-        j = 0 
-        num_edges = 0
-        while j < m:
-             graphs[i].append(create_random_graph(n,num_edges))
-             num_edges = (num_edges + 10) % n 
-             j += 1
-
-    print(graphs)
+# Used by experiment 1 and 2
+def listOfRandomGraphs(m, e):
+    graphs = []
+    for i in range(m):
+        graphs.append(create_random_graph(100,e))
+    return graphs
 
 
 
+def experiment1():
+    m = 100 #number of graphs in each list
+    maxEdges = 100
+    graphs = [listOfRandomGraphs(m,x) for x in range(1,maxEdges)]
+    probabilties = []
+    tempSum = 0
 
-#*************** Part 2 *********************
+    for i in graphs:
+        for j in i:
+            if has_cycle(j):
+                tempSum += 1
+        probabilties.append(tempSum/m)
+        tempSum = 0
+
+    plt.plot([x for x in range(1,maxEdges)], probabilties)
+    plt.title("Probabiltity of Cycle vs Number of Edges")
+    plt.xlabel("Number of edges")
+    plt.ylabel("Probability of cycle")
+    plt.show()
+    return 0
+
+def experiment2():
+    m = 100 #number of graphs in each list
+    minEdges = 125
+    maxEdges = 500
+    graphs = [listOfRandomGraphs(m,x) for x in range(minEdges,maxEdges)]
+    probabilties = []
+    tempSum = 0
+
+    for i in graphs:
+        for j in i:
+            if is_connected(j):
+                tempSum += 1
+        probabilties.append(tempSum/m)
+        tempSum = 0
+
+    plt.plot([x for x in range(minEdges,maxEdges)], probabilties)
+    plt.title("Probabiltity of Connection vs Number of Edges")
+    plt.xlabel("Number of edges")
+    plt.ylabel("Probability of Connection")
+    plt.show()
+    return 0
+
+#*************** part 2 *********************
+
 
 # Find vertex with highest degree in G
-# Defaults to 0 if all vertices have no edges
+# Defaults to 0 if all vertices have same number of edges
 def highest_degree(G): 
     maxDegree = 0
     maxVertex = 0
@@ -648,8 +681,6 @@ def part2_worst_case():
 
     # Get all subsets of this for possible edge combinations
     pEdges = list(combinations([k for k in range(5)],2))  # Store all possible edges
-
-    graphs = []
     
     subsets = []
 
@@ -690,14 +721,44 @@ def part2_worst_case():
 
 
 
+#*************** independent set *********************
+def is_independent_set(G, I):
+    for start in G.adj:
+        for end in G.adj[start]:
+            if start in I and end in I:
+                return False
+    return True
 
 
+def MIS(G):
+    nodes = [i for i in range(G.number_of_nodes())]
+    subsets = power_set(nodes)
 
-    
-    return
+    max_independent = []
+
+    for subset in subsets:
+        if is_independent_set(G, subset):
+            if len(subset) > len(max_independent):
+                max_independent = subset
+
+    return max_independent
+
 
 
 # Run experiments 
+# experiment1()
+# experiment2()
+
+# g = create_random_graph(15,15)
+# a = MIS(g)
+# b = MVC(g)
+
+# print(a)
+# print(b)
+# print(len(a))
+# print(len(b))
+
+
 # part2_edge()
 # part2_node(True)  # True -> Fixed number of edges
 # part2_node(False) # False -> Not fixed, proportional number of edges
